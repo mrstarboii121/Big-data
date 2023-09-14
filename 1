@@ -1,0 +1,29 @@
+import pandas as pd
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.impute import SimpleImputer
+
+# Load the dataset
+df = pd.read_csv('your_dataset.csv')
+
+# Step 1: Handle Missing Values in 'Age' column
+# Option 1: Fill missing ages with the median age
+median_age = df['Age'].median()
+df['Age'].fillna(median_age, inplace=True)
+
+# Option 2: Fill missing ages with mean, mode, or any other strategy based on your dataset and goals.
+
+# Step 2: Handle Missing Values in 'Gender' column
+# Option 1: Fill missing genders with the most frequent gender
+most_frequent_gender = df['Gender'].mode()[0]
+df['Gender'].fillna(most_frequent_gender, inplace=True)
+
+# Option 2: You can use other strategies like forward-fill or backward-fill if they make sense for your data.
+
+# Step 3: One-Hot Encode the 'Gender' column
+encoder = OneHotEncoder(sparse=False)
+gender_encoded = encoder.fit_transform(df[['Gender']])
+gender_encoded_df = pd.DataFrame(gender_encoded, columns=encoder.get_feature_names(['Gender']))
+df = pd.concat([df, gender_encoded_df], axis=1)
+
+# Drop the original 'Gender' column as it's no longer needed
+df.drop(columns=['Gender'], inplace=True)
