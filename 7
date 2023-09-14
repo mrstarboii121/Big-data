@@ -1,0 +1,28 @@
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+import matplotlib.pyplot as plt
+data = pd.read_csv('advertising_data.csv')
+data.head()  
+data.info()
+correlation_coefficient = data['Advertising Spend'].corr(data['Sales Revenue'])
+print(f'Correlation Coefficient: {correlation_coefficient:.2f}')
+plt.scatter(data['Advertising Spend'], data['Sales Revenue'])
+plt.xlabel('Advertising Spend (in dollars)')
+plt.ylabel('Sales Revenue (in dollars)')
+plt.title('Advertising Spend vs. Sales Revenue')
+plt.show()
+X = data['Advertising Spend']
+y = data['Sales Revenue']
+X = sm.add_constant(X)  # Add a constant term (intercept) to the model
+
+model = sm.OLS(y, X).fit()
+print(model.summary())
+predicted_sales = model.predict(X)
+plt.scatter(data['Advertising Spend'], data['Sales Revenue'], label='Data')
+plt.plot(data['Advertising Spend'], predicted_sales, label='Regression Line', color='red')
+plt.xlabel('Advertising Spend (in dollars)')
+plt.ylabel('Sales Revenue (in dollars)')
+plt.title('Advertising Spend vs. Sales Revenue (Regression)')
+plt.legend()
+plt.show()
