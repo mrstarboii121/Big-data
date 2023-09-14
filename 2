@@ -1,0 +1,63 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, roc_auc_score, roc_curve, auc
+import matplotlib.pyplot as plt
+
+# Load your dataset
+data = pd.read_csv('your_churn_dataset.csv')
+
+# Split the data into features (X) and target (y)
+X = data.drop('Churn', axis=1)  # Assuming 'Churn' is your target column
+y = data['Churn']
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Standardize features (recommended for SVM and sometimes for Logistic Regression)
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Define and train the models
+models = {
+    'Logistic Regression': LogisticRegression(),
+    'Random Forest': RandomForestClassifier(),
+    'SVM': SVC(probability=True),
+    'Gradient Boosting': GradientBoostingClassifier()
+}
+
+results = {}
+
+for model_name, model in models.items():
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    y_pred_prob = model.predict_proba(X_test)[:, 1]  # Probability of positive class for ROC-AUC
+
+    accuracy = accuracy_score(y_test, y_pred)
+    roc_auc = roc_auc_score(y_test, y_pred_prob)
+
+    results[model_name] = {'Accuracy': accuracy, 'ROC-AUC': roc_auc}
+
+# Print the results
+for model_name, metrics in results.items():
+    print(f"Model: {model_name}")
+    print(f"Accuracy: {metrics['Accuracy']:.4f}")
+    print(f"ROC-AUC: {metrics['ROC-AUC']:.4f}")
+    print()
+
+# Plot ROC curves
+plt.figure(figsize=(8, 6))
+for model_name, model in models.items():
+    fpr, tpr, _ = roc_curve(y_test, model.predict_proba(X_test)[:, 1])
+    roc_auc = auc(fpr, tpr)
+    plt.plot(fpr, tpr, label=f'{model_name} (AUC = {roc_auc:.2f})')
+
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC) Curves')
+plt.legend(loc='lower right')
+plt.show()
